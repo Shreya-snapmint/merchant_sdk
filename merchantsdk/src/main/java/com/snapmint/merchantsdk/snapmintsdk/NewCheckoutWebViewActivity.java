@@ -79,6 +79,7 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
     private final static int FILE_CHOOSER_RESULTCODE = 1;
     private String finalData;
     private String apiJson;
+    private String status = SnapmintConfiguration.FAILED;
 
     @SuppressLint("ObsoleteSdkInt")
     @Override
@@ -533,6 +534,7 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
                 newWebView.destroy();
                 newWebView = null;
             } else {
+                status = SnapmintConfiguration.FAILED;
                 Intent intent = new Intent();
                 intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
                 setResult(RESULT_OK, intent);

@@ -111,15 +111,17 @@ public class MainActivity extends AppCompatActivity {
                         JSONArray productJsonArray = new JSONArray();
                         productJsonArray.put(product);
                         jsonObject.put("products",productJsonArray);
-
-                        Intent intent = new Intent(MainActivity.this, com.snapmint.merchantsdk.snapmintsdk.NewCheckoutWebViewActivity.class);
-                        intent.putExtra("data", jsonObject.toString());
-                        intent.putExtra("option_clicked", "check_out");
-                        intent.putExtra("callback", responseObject);
-                        intent.putExtra("base_url", etBaseUrl.getText().toString().trim());
-                        intent.putExtra("suc_url", merchantConfirmUrlEdt.getText().toString().trim());
-                        intent.putExtra("fail_url", merchantFailUrlEdt.getText().toString().trim());
-                        startActivityForResult(intent,SnapmintConfiguration.SNAPMINT_PAYMENT);
+                        if (!isFinishing()) {
+                            Intent intent = new Intent(MainActivity.this, com.snapmint.merchantsdk.snapmintsdk.NewCheckoutWebViewActivity.class);
+                            intent.putExtra("data", jsonObject.toString());
+                            intent.putExtra("option_clicked", "check_out");
+                            intent.putExtra("callback", responseObject);
+                            intent.putExtra("base_url", etBaseUrl.getText().toString().trim());
+                            intent.putExtra("suc_url", merchantConfirmUrlEdt.getText().toString().trim());
+                            intent.putExtra("fail_url", merchantFailUrlEdt.getText().toString().trim());
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivityForResult(intent, SnapmintConfiguration.SNAPMINT_PAYMENT);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
