@@ -45,6 +45,12 @@ public class MainActivity extends AppCompatActivity {
     private Button btnChangeOrderValue;
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("lifeCycle", "onResume: "+MainActivity.class.getName());
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
        try {
@@ -80,50 +86,17 @@ public class MainActivity extends AppCompatActivity {
                 //CheckSum and All Parameter, context
 
                 if (isDataValidate()) {
-                    JSONObject jsonObject = new JSONObject();
-                    try {
-                        jsonObject.put("merchant_key",merchantKeyEdt.getText().toString().trim());
-                        jsonObject.put("merchant_token",merchantTokenEdt.getText().toString().trim());
-                        jsonObject.put("merchant_id",merchantIdEdt.getText().toString().trim());
-                        jsonObject.put("merchant_confirmation_url",merchantConfirmUrlEdt.getText().toString().trim());
-                        jsonObject.put("merchant_failure_url",merchantFailUrlEdt.getText().toString().trim());
-                        jsonObject.put("mobile",et_phone_no.getText().toString().trim());
-                        jsonObject.put("store_id",storeIdEdt.getText().toString().trim());
-                        jsonObject.put("order_id",orderIdEdt.getText().toString().trim());
-                        jsonObject.put("order_value",orderValueEdt.getText().toString().trim());
-                        jsonObject.put("udf1", "1.91");
-                        jsonObject.put("udf2", "7147");
-                        jsonObject.put("full_name", fullNameEdt.getText().toString().trim());
-                        jsonObject.put("email", emailEdt.getText().toString().trim());
-                        jsonObject.put("billing_address_line1", billingAddressLIne1Edt.getText().toString().trim());
-                        jsonObject.put("billing_zip", billingZipEdt.getText().toString().trim());
-                        jsonObject.put("shipping_address_line1", shippingAddressLIne1Edt.getText().toString().trim());
-                        jsonObject.put("shipping_zip", shippingZipEdt.getText().toString().trim());
-                        jsonObject.put("deviceType", "android");
-                        JSONObject product = new JSONObject();
-                        product.put("sku",proSKUEdt.getText().toString().trim());
-                        product.put("name","Bold Show Diamond Earrings");
-                        product.put("quantity",quantityEdt.getText().toString().trim());
-                        product.put("unit_price",unitPriceEdt.getText().toString().trim());
-                        product.put("udf2","7147");
-                        product.put("udf1","1.910 g");
-
-                        JSONArray productJsonArray = new JSONArray();
-                        productJsonArray.put(product);
-                        jsonObject.put("products",productJsonArray);
-                        if (!isFinishing()) {
-                            Intent intent = new Intent(MainActivity.this, com.snapmint.merchantsdk.snapmintsdk.NewCheckoutWebViewActivity.class);
-                            intent.putExtra("data", jsonObject.toString());
-                            intent.putExtra("option_clicked", "check_out");
-                            intent.putExtra("callback", responseObject);
-                            intent.putExtra("base_url", etBaseUrl.getText().toString().trim());
-                            intent.putExtra("suc_url", merchantConfirmUrlEdt.getText().toString().trim());
-                            intent.putExtra("fail_url", merchantFailUrlEdt.getText().toString().trim());
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivityForResult(intent, SnapmintConfiguration.SNAPMINT_PAYMENT);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+//                    JSONObject jsonObject = getNewJsonObject();
+                    JSONObject jsonObject = getOldJsonObject();
+                    if (!isFinishing()) {
+                        Intent intent = new Intent(MainActivity.this, com.snapmint.merchantsdk.snapmintsdk.NewCheckoutWebViewActivity.class);
+                        intent.putExtra("data", jsonObject.toString());
+                        intent.putExtra("option_clicked", "check_out");
+                        intent.putExtra("callback", responseObject);
+                        intent.putExtra("base_url", etBaseUrl.getText().toString().trim());
+                        intent.putExtra("suc_url", merchantConfirmUrlEdt.getText().toString().trim());
+                        intent.putExtra("fail_url", merchantFailUrlEdt.getText().toString().trim());
+                        startActivityForResult(intent, SnapmintConfiguration.SNAPMINT_PAYMENT);
                     }
                 }
             }
@@ -226,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
         merchantConfirmUrlEdt.setText("http://www.vijaysales.com/success");
         merchantFailUrlEdt.setText("http://www.vijaysales.com/failed");
         etBaseUrl.setText("https://sandboxapi.snapmint.com/v1/public/s2s_online_checkout");/*prod*/
-//        etBaseUrl.setText("https://qaapi.snapmint.com/v1/public/s2s_online_checkout");/*Qa*/
+//        etBaseUrl.setText("https://pay.qa.snapmint.com/api/pub/carts");/*Qa*/
 //        etBaseUrl.setText("https://qaapi.snapmint.com/v1/public/s2s_online_checkout");/*Qa*/
 
         fullNameEdt.setText("GIRIDHAR Crawley");
@@ -244,6 +217,81 @@ public class MainActivity extends AppCompatActivity {
         proSKUEdt.setText("abdx123");
         unitPriceEdt.setText("1000");
         quantityEdt.setText("5");
+    }
+
+    private JSONObject getNewJsonObject(){
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("otpBypass",true);
+            jsonObject.put("ip","127.0.0.1");
+            jsonObject.put("merchantPassword",merchantTokenEdt.getText().toString().trim());
+            jsonObject.put("merchantId",merchantIdEdt.getText().toString().trim());
+            jsonObject.put("merchantConfirmationUrl",merchantConfirmUrlEdt.getText().toString().trim());
+            jsonObject.put("merchantFailureUrl",merchantFailUrlEdt.getText().toString().trim());
+            jsonObject.put("mobile",et_phone_no.getText().toString().trim());
+            jsonObject.put("merchantOrderId",orderIdEdt.getText().toString().trim());
+            jsonObject.put("orderValue",orderValueEdt.getText().toString().trim());
+            jsonObject.put("udf1", "1.91");
+            jsonObject.put("udf2", "7147");
+            jsonObject.put("full_name", fullNameEdt.getText().toString().trim());
+            jsonObject.put("email", emailEdt.getText().toString().trim());
+            jsonObject.put("deviceType", "android");
+            JSONObject product = new JSONObject();
+            product.put("sku",proSKUEdt.getText().toString().trim());
+            product.put("name","Bold Show Diamond Earrings");
+            product.put("quantity",quantityEdt.getText().toString().trim());
+            product.put("unitPrice",unitPriceEdt.getText().toString().trim());
+            product.put("itemUrl","https://example.com/product1");
+            product.put("imageUrl","https://example.com/product1.jpg");
+            product.put("udf2","7147");
+            product.put("udf1","1.910 g");
+            product.put("udf3","feature");
+
+            JSONArray productJsonArray = new JSONArray();
+            productJsonArray.put(product);
+            jsonObject.put("products",productJsonArray);
+        } catch (Exception e) {
+            Log.e("TAG", "getNewJsonObject: "+e.getMessage() );
+        }
+        return jsonObject;
+    }
+
+    private JSONObject getOldJsonObject(){
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("merchant_key",merchantKeyEdt.getText().toString().trim());
+            jsonObject.put("merchant_token",merchantTokenEdt.getText().toString().trim());
+            jsonObject.put("merchant_id",merchantIdEdt.getText().toString().trim());
+            jsonObject.put("merchant_confirmation_url",merchantConfirmUrlEdt.getText().toString().trim());
+            jsonObject.put("merchant_failure_url",merchantFailUrlEdt.getText().toString().trim());
+            jsonObject.put("mobile",et_phone_no.getText().toString().trim());
+            jsonObject.put("store_id",storeIdEdt.getText().toString().trim());
+            jsonObject.put("order_id",orderIdEdt.getText().toString().trim());
+            jsonObject.put("order_value",orderValueEdt.getText().toString().trim());
+            jsonObject.put("udf1", "1.91");
+            jsonObject.put("udf2", "7147");
+            jsonObject.put("full_name", fullNameEdt.getText().toString().trim());
+            jsonObject.put("email", emailEdt.getText().toString().trim());
+            jsonObject.put("billing_address_line1", billingAddressLIne1Edt.getText().toString().trim());
+            jsonObject.put("billing_zip", billingZipEdt.getText().toString().trim());
+            jsonObject.put("shipping_address_line1", shippingAddressLIne1Edt.getText().toString().trim());
+            jsonObject.put("shipping_zip", shippingZipEdt.getText().toString().trim());
+            jsonObject.put("deviceType", "android");
+            JSONObject product = new JSONObject();
+            product.put("sku",proSKUEdt.getText().toString().trim());
+            product.put("name","Bold Show Diamond Earrings");
+            product.put("quantity",quantityEdt.getText().toString().trim());
+            product.put("unit_price",unitPriceEdt.getText().toString().trim());
+            product.put("udf2","7147");
+            product.put("udf1","1.910 g");
+
+            JSONArray productJsonArray = new JSONArray();
+            productJsonArray.put(product);
+            jsonObject.put("products",productJsonArray);
+        } catch (Exception e) {
+            Log.e("TAG", "getNewJsonObject: "+e.getMessage() );
+        }
+        return jsonObject;
     }
 
     private boolean isDataValidate() {

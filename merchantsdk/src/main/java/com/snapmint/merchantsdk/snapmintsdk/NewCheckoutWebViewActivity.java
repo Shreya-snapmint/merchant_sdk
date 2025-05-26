@@ -170,9 +170,9 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
         try {
             binding.progressBar.setVisibility(View.VISIBLE);
             JSONObject finalData = new JSONObject(apiJson);
-            if (!finalData.has("checksum_hash")) {
+            /*if (!finalData.has("checksum_hash")) {
                 finalData.put("checksum_hash", generateCheckSum(finalData.getString("merchant_key") + "|" + finalData.getString("order_id") + "|" + finalData.getString("order_value") + "|" + finalData.getString("full_name") + "|" + finalData.getString("email") + "|" + finalData.getString("merchant_token")));
-            }
+            }*/
             final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
             OkHttpClient client;
             if (BuildConfig.DEBUG) {
@@ -180,8 +180,8 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
             } else {
                 client = new OkHttpClient();
             }
-            RequestBody body = RequestBody.create(String.valueOf(finalData), JSON); // new
-            Request request = new Request.Builder().url(baseUrl).post(body).build();
+            RequestBody body = RequestBody.create(finalData.toString(), JSON); // new
+            Request request = new Request.Builder().url(baseUrl).addHeader("Content-Type", "application/json").post(body).build();
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -205,9 +205,10 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
                             } else {
                                 binding.progressBar.setVisibility(View.GONE);
                                 try {
-                                    showErrorDialog(jsonObject1.getString("message"));
+                                    String message = jsonObject1.has("message") ? jsonObject1.getString("message") : jsonObject1.has("code") ? jsonObject1.getString("code") : "Something Went Wrong";
+                                    showErrorDialog(message);
                                 } catch (JSONException e) {
-                                    throw new RuntimeException(e);
+                                    showErrorDialog(e.getMessage());
                                 }
                             }
                         });
@@ -538,6 +539,7 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
                 Intent intent = new Intent();
                 intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
                 setResult(RESULT_OK, intent);
+                sendBroadcast(intent);
                 finish();
             }
         }
@@ -573,6 +575,7 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
         Intent intent = new Intent();
         intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.SUCCESS);
         setResult(RESULT_OK, intent);
+        sendBroadcast(intent);
         finish();
     }
 
@@ -581,6 +584,7 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
         Intent intent = new Intent();
         intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
         setResult(RESULT_OK, intent);
+        sendBroadcast(intent);
         finish();
     }
 }
