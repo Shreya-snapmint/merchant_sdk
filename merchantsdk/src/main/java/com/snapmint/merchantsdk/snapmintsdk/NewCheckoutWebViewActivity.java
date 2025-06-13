@@ -71,15 +71,14 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
     private NewCheckoutWebViewActivity mContext;
     private String sucUrl;
     private String failUrl;
-    private String baseUrl;
     private WebView newWebView;
     private ValueCallback<Uri> mUploadMessage;
     public ValueCallback<Uri[]> uploadMessage;
     public static final int REQUEST_SELECT_FILE = 100;
     private final static int FILE_CHOOSER_RESULTCODE = 1;
-    private String finalData;
-    private String apiJson;
+    private String redirectUrl;
     private String status = SnapmintConfiguration.FAILED;
+    private String TAG = "NewCheckoutWebView";
 
     @SuppressLint("ObsoleteSdkInt")
     @Override
@@ -119,15 +118,14 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
 
     private void getBundleData() {
         Intent intent = getIntent();
-        apiJson = intent.getStringExtra(ApiConstant.DATA);
-        baseUrl = this.getIntent().getStringExtra("base_url");
         sucUrl = intent.getStringExtra("suc_url");
         failUrl = intent.getStringExtra("fail_url");
+        redirectUrl = intent.getStringExtra("redirect_url");
 
     }
 
     private void initialise() {
-        callOkHttpAPi(baseUrl);
+        setWebView(redirectUrl);
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "NewApi"})
@@ -165,68 +163,6 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
         });
 
     }
-
-    private void callOkHttpAPi(String baseUrl) {
-        try {
-            binding.progressBar.setVisibility(View.VISIBLE);
-            JSONObject finalData = new JSONObject(apiJson);
-            /*if (!finalData.has("checksum_hash")) {
-                finalData.put("checksum_hash", generateCheckSum(finalData.getString("merchant_key") + "|" + finalData.getString("order_id") + "|" + finalData.getString("order_value") + "|" + finalData.getString("full_name") + "|" + finalData.getString("email") + "|" + finalData.getString("merchant_token")));
-            }*/
-            final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-            OkHttpClient client;
-            if (BuildConfig.DEBUG) {
-                client = new OkHttpClient.Builder().addInterceptor(new CurlLoggerInterceptor("cURL")).build();
-            } else {
-                client = new OkHttpClient();
-            }
-            RequestBody body = RequestBody.create(finalData.toString(), JSON); // new
-            Request request = new Request.Builder().url(baseUrl).addHeader("Content-Type", "application/json").post(body).build();
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    runOnUiThread(() -> {
-                        binding.progressBar.setVisibility(View.GONE);
-                        showErrorDialog(e.getMessage());
-                    });
-                }
-
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    try {
-                        JSONObject jsonObject1 = new JSONObject(response.body().string());
-                        runOnUiThread(() -> {
-                            if (jsonObject1.has("redirect_url")) {
-                                try {
-                                    setWebView(jsonObject1.getString("redirect_url"));
-                                } catch (JSONException e) {
-                                    binding.progressBar.setVisibility(View.GONE);
-                                }
-                            } else {
-                                binding.progressBar.setVisibility(View.GONE);
-                                try {
-                                    String message = jsonObject1.has("message") ? jsonObject1.getString("message") : jsonObject1.has("code") ? jsonObject1.getString("code") : "Something Went Wrong";
-                                    showErrorDialog(message);
-                                } catch (JSONException e) {
-                                    showErrorDialog(e.getMessage());
-                                }
-                            }
-                        });
-                    } catch (Exception e) {
-                        runOnUiThread(() -> {
-                            Log.e("NewCheckout", "callOkHttpAPi: "+e );
-                            binding.progressBar.setVisibility(View.GONE);
-                            showErrorDialog("Incomplete response received from application");
-                        });
-                    }
-                }
-            });
-        } catch (Exception e) {
-            binding.progressBar.setVisibility(View.GONE);
-            showErrorDialog("Incomplete response received from application");
-        }
-    }
-
 
     public class webClient extends WebViewClient {
         @Override
