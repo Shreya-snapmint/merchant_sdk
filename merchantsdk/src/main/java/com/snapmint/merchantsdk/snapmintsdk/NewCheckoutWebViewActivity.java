@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -395,7 +396,7 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
             super.onProgressChanged(view, newProgress);
             String url = view.getUrl();
             try {
-                if (url != null && (url.contains(sucUrl) || url.contains(failUrl))) {
+                if (!TextUtils.isEmpty(url) && (url.contains(sucUrl) || url.contains(failUrl))) {
                     binding.progressBar.setVisibility(View.VISIBLE);
                     (new Handler()).postDelayed(() -> {
                         if (url.contains(sucUrl)) {

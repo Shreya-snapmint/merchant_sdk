@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".NewMainActivityKotlin">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="15dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etOrderValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Order value"
+                    android:inputType="number"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+
+            </RelativeLayout>
+
+            <Button
+                android:id="@+id/btnChangeOrderValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:text="Change Order Value" />
+
+            <com.snapmint.merchantsdk.components.SnapmintEmiInfoTitanButton
+                android:id="@+id/titanInfoButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="20dp" />
+
+            <TextView
+                android:id="@+id/tvBaseUrlText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Base Url*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etBaseUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Base url"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvMobileText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Mobile*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etMobile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Phone Number"
+                    android:inputType="number"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvMerchantSuccessUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Merchant Confirmation URL*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etMerchantSuccessUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Merchant Confirmation URL"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvMerchantFailureUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Merchant Failure URL*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etMerchantFailureUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Merchant failure URL"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvMerchantId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Merchant ID*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etMerchantId"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Merchant Id*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvMerchantPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Merchant Password*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etMerchantPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Merchant Password*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvMerchantOrderId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Merchant Order ID*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etMerchantOrderId"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Merchant Order Id*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvOrderValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Order Value*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etOrderValueCheckout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Order Value*"
+                    android:inputType="number"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvFirstName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="First Name*"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etFirstName"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter First Name*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvMiddleName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Middle Name"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etMiddleName"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Middle Name*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvLastName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Last Name"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etLastName"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Last Name*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvSku"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="SKU"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etSku"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter SKU*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvQuantity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Quantity"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etQuantity"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Quantity*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tvUnitPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="Unit Price"
+                android:textColor="@color/color_title"
+                android:textSize="@dimen/layout_content" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/snap_edit_text_default_background"
+                android:padding="10dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/etUnitPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:hint="Enter Unit Price*"
+                    android:inputType="text"
+                    android:textColor="@color/color_input"
+                    android:textSize="@dimen/layout_content_small" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerInParent="true"
+                    android:layout_toStartOf="@+id/switchOtp"
+                    android:text="Otp Bypass"
+                    android:textColor="@color/color_input" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchOtp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerInParent="true" />
+            </RelativeLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnCheckOut"
+                style="@style/Base.Widget.AppCompat.Button.Colored"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Success Check Out" />
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
