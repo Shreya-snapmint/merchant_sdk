@@ -4,14 +4,12 @@ plugins {
 
 android {
     namespace 'com.snapmint.merchantsdk'
-    compileSdk 31
+    compileSdk 35
 
     defaultConfig {
 //        applicationId "com.viral.my_sdk"
         minSdk 21
-        targetSdk 31
-        versionCode 1
-        versionName "1.0"
+        targetSdk 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

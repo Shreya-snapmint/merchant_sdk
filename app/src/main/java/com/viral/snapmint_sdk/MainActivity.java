@@ -1,6 +1,7 @@
 package com.viral.snapmint_sdk;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -12,22 +13,36 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
-import com.snapmint.merchantsdk.components.SnapmintEmiInfoButton;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.snapmint.merchantsdk.BuildConfig;
+import com.snapmint.merchantsdk.api.CurlLoggerInterceptor;
 import com.snapmint.merchantsdk.components.SnapmintEmiInfoTitanButton;
-import com.snapmint.merchantsdk.constants.SnapmintConstants;
 import com.snapmint.merchantsdk.constants.SnapmintConfiguration;
-import com.viral.snapmint_sdk.utils.Helper;
+import com.snapmint.merchantsdk.snapmintsdk.NewCheckoutWebViewActivity;
+import com.viral.snapmint_sdk.databinding.ActivityMainBinding;
 import com.viral.snapmint_sdk.utils.ResponseObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Random;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -43,6 +58,17 @@ public class MainActivity extends AppCompatActivity {
     ResponseObject responseObject;
     private EditText etOrderValue;
     private Button btnChangeOrderValue;
+    private SwitchMaterial switchOtp;
+    private @NonNull ActivityMainBinding binding;
+    private MainActivity mContext;
+    private ActivityResultLauncher<Intent> snapmintLauncher;
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("lifeCycle", "onResume: "+MainActivity.class.getName());
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -65,10 +91,29 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 //        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+
+        View view = binding.getRoot();
+        mContext = this;
+        setContentView(view);
 
         btn_check_out = findViewById(R.id.btn_check_out);
         btn_invalid_data = findViewById(R.id.btn_invalid_data);
+
+        snapmintLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Intent data = result.getData();
+                        String status = data.getStringExtra(SnapmintConfiguration.STATUS);
+                        if (SnapmintConfiguration.SUCCESS.equalsIgnoreCase(status)) {
+                            Toast.makeText(this, "Payment Success", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Payment Failed", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+        );
 
         inItView();
 
@@ -80,49 +125,9 @@ public class MainActivity extends AppCompatActivity {
                 //CheckSum and All Parameter, context
 
                 if (isDataValidate()) {
-                    JSONObject jsonObject = new JSONObject();
-                    try {
-                        jsonObject.put("merchant_key",merchantKeyEdt.getText().toString().trim());
-                        jsonObject.put("merchant_token",merchantTokenEdt.getText().toString().trim());
-                        jsonObject.put("merchant_id",merchantIdEdt.getText().toString().trim());
-                        jsonObject.put("merchant_confirmation_url",merchantConfirmUrlEdt.getText().toString().trim());
-                        jsonObject.put("merchant_failure_url",merchantFailUrlEdt.getText().toString().trim());
-                        jsonObject.put("mobile",et_phone_no.getText().toString().trim());
-                        jsonObject.put("store_id",storeIdEdt.getText().toString().trim());
-                        jsonObject.put("order_id",orderIdEdt.getText().toString().trim());
-                        jsonObject.put("order_value",orderValueEdt.getText().toString().trim());
-                        jsonObject.put("udf1", "1.91");
-                        jsonObject.put("udf2", "7147");
-                        jsonObject.put("full_name", fullNameEdt.getText().toString().trim());
-                        jsonObject.put("email", emailEdt.getText().toString().trim());
-                        jsonObject.put("billing_address_line1", billingAddressLIne1Edt.getText().toString().trim());
-                        jsonObject.put("billing_zip", billingZipEdt.getText().toString().trim());
-                        jsonObject.put("shipping_address_line1", shippingAddressLIne1Edt.getText().toString().trim());
-                        jsonObject.put("shipping_zip", shippingZipEdt.getText().toString().trim());
-                        jsonObject.put("deviceType", "android");
-                        JSONObject product = new JSONObject();
-                        product.put("sku",proSKUEdt.getText().toString().trim());
-                        product.put("name","Bold Show Diamond Earrings");
-                        product.put("quantity",quantityEdt.getText().toString().trim());
-                        product.put("unit_price",unitPriceEdt.getText().toString().trim());
-                        product.put("udf2","7147");
-                        product.put("udf1","1.910 g");
-
-                        JSONArray productJsonArray = new JSONArray();
-                        productJsonArray.put(product);
-                        jsonObject.put("products",productJsonArray);
-
-                        Intent intent = new Intent(MainActivity.this, com.snapmint.merchantsdk.snapmintsdk.NewCheckoutWebViewActivity.class);
-                        intent.putExtra("data", jsonObject.toString());
-                        intent.putExtra("option_clicked", "check_out");
-                        intent.putExtra("callback", responseObject);
-                        intent.putExtra("base_url", etBaseUrl.getText().toString().trim());
-                        intent.putExtra("suc_url", merchantConfirmUrlEdt.getText().toString().trim());
-                        intent.putExtra("fail_url", merchantFailUrlEdt.getText().toString().trim());
-                        startActivityForResult(intent,SnapmintConfiguration.SNAPMINT_PAYMENT);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    JSONObject jsonObject = getNewJsonObject();
+//                    JSONObject jsonObject = getOldJsonObject();
+                    callOkHttpAPi(etBaseUrl.getText().toString());
                 }
             }
         });
@@ -181,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
 
         etOrderValue = findViewById(R.id.etOrderValue);
         btnChangeOrderValue = findViewById(R.id.btnChangeOrderValue);
+        switchOtp = findViewById(R.id.switchOtp);
 
         etOrderValue.setText("4500");
         btnChangeOrderValue.setOnClickListener(view -> {
@@ -215,16 +221,19 @@ public class MainActivity extends AppCompatActivity {
         quantityEdt.setText("5");*/
 
         et_phone_no.setText("7415630303");
-        merchantIdEdt.setText("1456");
-        merchantTokenEdt.setText("UOYY0R_n");
-        merchantKeyEdt.setText("cQ_kvgB0");
+//        merchantIdEdt.setText("1456");
+        merchantIdEdt.setText("2459");
+//        merchantTokenEdt.setText("v9wLtwfU");
+        merchantTokenEdt.setText("DG9i2c_P");
+//        merchantKeyEdt.setText("cQ_kvgB0");
+        merchantKeyEdt.setText("DJgVNPSK");
         storeIdEdt.setText("1");
         orderIdEdt.setText("MELORRA-"+ new Random().nextInt());
         orderValueEdt.setText("7000");
         merchantConfirmUrlEdt.setText("http://www.vijaysales.com/success");
         merchantFailUrlEdt.setText("http://www.vijaysales.com/failed");
-        etBaseUrl.setText("https://sandboxapi.snapmint.com/v1/public/s2s_online_checkout");/*prod*/
-//        etBaseUrl.setText("https://qaapi.snapmint.com/v1/public/s2s_online_checkout");/*Qa*/
+//        etBaseUrl.setText("https://sandboxapi.snapmint.com/v1/public/s2s_online_checkout");/*prod*/
+        etBaseUrl.setText("https://apis.qa.snapmint.com/api/pub/carts");/*Qa*/
 //        etBaseUrl.setText("https://qaapi.snapmint.com/v1/public/s2s_online_checkout");/*Qa*/
 
         fullNameEdt.setText("GIRIDHAR Crawley");
@@ -242,6 +251,81 @@ public class MainActivity extends AppCompatActivity {
         proSKUEdt.setText("abdx123");
         unitPriceEdt.setText("1000");
         quantityEdt.setText("5");
+    }
+
+    private JSONObject getNewJsonObject(){
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("otpBypass",switchOtp.isChecked());
+            jsonObject.put("ip","127.0.0.1");
+            jsonObject.put("merchantPassword",merchantTokenEdt.getText().toString().trim());
+            jsonObject.put("merchantId",merchantIdEdt.getText().toString().trim());
+            jsonObject.put("merchantConfirmationUrl",merchantConfirmUrlEdt.getText().toString().trim());
+            jsonObject.put("merchantFailureUrl",merchantFailUrlEdt.getText().toString().trim());
+            jsonObject.put("mobile",et_phone_no.getText().toString().trim());
+            jsonObject.put("merchantOrderId",orderIdEdt.getText().toString().trim());
+            jsonObject.put("orderValue",orderValueEdt.getText().toString().trim());
+            jsonObject.put("udf1", "1.91");
+            jsonObject.put("udf2", "7147");
+            jsonObject.put("full_name", fullNameEdt.getText().toString().trim());
+            jsonObject.put("email", emailEdt.getText().toString().trim());
+            jsonObject.put("deviceType", "android");
+            JSONObject product = new JSONObject();
+            product.put("sku",proSKUEdt.getText().toString().trim());
+            product.put("name","Bold Show Diamond Earrings");
+            product.put("quantity",quantityEdt.getText().toString().trim());
+            product.put("unitPrice",unitPriceEdt.getText().toString().trim());
+            product.put("itemUrl","https://example.com/product1");
+            product.put("imageUrl","https://example.com/product1.jpg");
+            product.put("udf2","7147");
+            product.put("udf1","1.910 g");
+            product.put("udf3","feature");
+
+            JSONArray productJsonArray = new JSONArray();
+            productJsonArray.put(product);
+            jsonObject.put("products",productJsonArray);
+        } catch (Exception e) {
+            Log.e("TAG", "getNewJsonObject: "+e.getMessage() );
+        }
+        return jsonObject;
+    }
+
+    private JSONObject getOldJsonObject(){
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("merchant_key",merchantKeyEdt.getText().toString().trim());
+            jsonObject.put("merchant_token",merchantTokenEdt.getText().toString().trim());
+            jsonObject.put("merchant_id",merchantIdEdt.getText().toString().trim());
+            jsonObject.put("merchant_confirmation_url",merchantConfirmUrlEdt.getText().toString().trim());
+            jsonObject.put("merchant_failure_url",merchantFailUrlEdt.getText().toString().trim());
+            jsonObject.put("mobile",et_phone_no.getText().toString().trim());
+            jsonObject.put("store_id",storeIdEdt.getText().toString().trim());
+            jsonObject.put("order_id",orderIdEdt.getText().toString().trim());
+            jsonObject.put("order_value",orderValueEdt.getText().toString().trim());
+            jsonObject.put("udf1", "1.91");
+            jsonObject.put("udf2", "7147");
+            jsonObject.put("full_name", fullNameEdt.getText().toString().trim());
+            jsonObject.put("email", emailEdt.getText().toString().trim());
+            jsonObject.put("billing_address_line1", billingAddressLIne1Edt.getText().toString().trim());
+            jsonObject.put("billing_zip", billingZipEdt.getText().toString().trim());
+            jsonObject.put("shipping_address_line1", shippingAddressLIne1Edt.getText().toString().trim());
+            jsonObject.put("shipping_zip", shippingZipEdt.getText().toString().trim());
+            jsonObject.put("deviceType", "android");
+            JSONObject product = new JSONObject();
+            product.put("sku",proSKUEdt.getText().toString().trim());
+            product.put("name","Bold Show Diamond Earrings");
+            product.put("quantity",quantityEdt.getText().toString().trim());
+            product.put("unit_price",unitPriceEdt.getText().toString().trim());
+            product.put("udf2","7147");
+            product.put("udf1","1.910 g");
+
+            JSONArray productJsonArray = new JSONArray();
+            productJsonArray.put(product);
+            jsonObject.put("products",productJsonArray);
+        } catch (Exception e) {
+            Log.e("TAG", "getNewJsonObject: "+e.getMessage() );
+        }
+        return jsonObject;
     }
 
     private boolean isDataValidate() {
@@ -300,8 +384,6 @@ public class MainActivity extends AppCompatActivity {
             progressBar.setCancelable(false);
             progressBar.setCanceledOnTouchOutside(false);
             progressBar.show();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -313,11 +395,92 @@ public class MainActivity extends AppCompatActivity {
             if (progressBar != null && progressBar.isShowing()) {
                 progressBar.dismiss();
             }
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void callOkHttpAPi(String baseUrl) {
+        try {
+            showProgress(mContext);
+            /*if (!finalData.has("checksum_hash")) {
+                finalData.put("checksum_hash", generateCheckSum(finalData.getString("merchant_key") + "|" + finalData.getString("order_id") + "|" + finalData.getString("order_value") + "|" + finalData.getString("full_name") + "|" + finalData.getString("email") + "|" + finalData.getString("merchant_token")));
+            }*/
+            final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+            OkHttpClient client;
+            if (BuildConfig.DEBUG) {
+                client = new OkHttpClient.Builder().addInterceptor(new CurlLoggerInterceptor("cURL")).build();
+            } else {
+                client = new OkHttpClient();
+            }
+            RequestBody body = RequestBody.create(getNewJsonObject().toString(), JSON); // new
+            Request request = new Request.Builder().url(baseUrl).addHeader("Content-Type", "application/json").post(body).build();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    runOnUiThread(() -> {
+                        dismissProgress();
+                        showErrorDialog(e.getMessage());
+                    });
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    try {
+                        JSONObject jsonObject1 = new JSONObject(response.body().string());
+                        runOnUiThread(() -> {
+                            if (jsonObject1.has("url")) {
+                                try {
+                                    dismissProgress();
+                                    if (!isFinishing()) {
+                                        Intent intent = new Intent(MainActivity.this, NewCheckoutWebViewActivity.class);
+                                        intent.putExtra("redirect_url", jsonObject1.getString("url"));
+                                        snapmintLauncher.launch(intent);
+                                        startActivityForResult(intent, SnapmintConfiguration.SNAPMINT_PAYMENT);
+                                    }
+                                } catch (Exception e) {
+                                    dismissProgress();
+                                }
+                            } else {
+                                dismissProgress();
+                                try {
+                                    String message = jsonObject1.has("message") ? jsonObject1.getString("message") : jsonObject1.has("code") ? jsonObject1.getString("code") : "Something Went Wrong";
+                                    showErrorDialog(message);
+                                } catch (JSONException e) {
+                                    showErrorDialog(e.getMessage());
+                                }
+                            }
+                        });
+                    } catch (Exception e) {
+                        runOnUiThread(() -> {
+                            Log.e("NewCheckout", "callOkHttpAPi: "+e );
+                            dismissProgress();
+                            showErrorDialog("Incomplete response received from application");
+                        });
+                    }
+                }
+            });
+        } catch (Exception e) {
+            dismissProgress();
+            showErrorDialog("Incomplete response received from application");
+        }
+    }
+
+
+    private void showErrorDialog(String message) {
+        runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setMessage(message);
+            builder.setTitle("Error !");
+            builder.setNegativeButton("Ok", (dialog, which) -> {
+                        dialog.cancel();
+                        onBackPressed();
+                    }
+
+            );
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        });
     }
 
 }

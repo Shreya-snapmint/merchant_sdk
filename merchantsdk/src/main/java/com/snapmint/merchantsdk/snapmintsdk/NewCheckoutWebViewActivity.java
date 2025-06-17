@@ -5,9 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -17,8 +14,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,8 +43,6 @@ import com.gun0912.tedpermission.normal.TedPermission;
 import com.snapmint.merchantsdk.BuildConfig;
 import com.snapmint.merchantsdk.JSBridge.CheckoutWebViewInterface;
 import com.snapmint.merchantsdk.R;
-import com.snapmint.merchantsdk.api.ApiBuilder;
-import com.snapmint.merchantsdk.api.ApiServices;
 import com.snapmint.merchantsdk.api.CurlLoggerInterceptor;
 import com.snapmint.merchantsdk.constants.ApiConstant;
 import com.snapmint.merchantsdk.constants.SnapmintConfiguration;
@@ -61,9 +56,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -79,15 +72,14 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
     private NewCheckoutWebViewActivity mContext;
     private String sucUrl;
     private String failUrl;
-    private String baseUrl;
     private WebView newWebView;
     private ValueCallback<Uri> mUploadMessage;
     public ValueCallback<Uri[]> uploadMessage;
     public static final int REQUEST_SELECT_FILE = 100;
     private final static int FILE_CHOOSER_RESULTCODE = 1;
-    private String finalData;
-    private String apiJson;
-    private ApiServices apiService;
+    private String redirectUrl;
+    private String status = SnapmintConfiguration.FAILED;
+    private String TAG = "NewCheckoutWebView";
 
     @SuppressLint("ObsoleteSdkInt")
     @Override
@@ -115,7 +107,7 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-//        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
         binding = ActivityNewCheckoutWebviewBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
@@ -127,16 +119,14 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
 
     private void getBundleData() {
         Intent intent = getIntent();
-        apiJson = intent.getStringExtra(ApiConstant.DATA);
-        baseUrl = this.getIntent().getStringExtra("base_url");
         sucUrl = intent.getStringExtra("suc_url");
         failUrl = intent.getStringExtra("fail_url");
+        redirectUrl = intent.getStringExtra("redirect_url");
 
     }
 
     private void initialise() {
-        callOkHttpAPi(baseUrl);
-        apiService = ApiBuilder.createLogger(ApiServices.class);
+        setWebView(redirectUrl);
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "NewApi"})
@@ -160,7 +150,6 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
         binding.webView.setWebViewClient(new webClient());
         binding.webView.setWebChromeClient(new webChromeClient());
         binding.webView.loadUrl(url);
-        registerForContextMenu(binding.webView);
         binding.webView.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 WebView webView = (WebView) v;
@@ -175,67 +164,6 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
         });
 
     }
-
-    private void callOkHttpAPi(String baseUrl) {
-        try {
-            binding.progressBar.setVisibility(View.VISIBLE);
-            JSONObject finalData = new JSONObject(apiJson);
-            if (!finalData.has("checksum_hash")) {
-                finalData.put("checksum_hash", generateCheckSum(finalData.getString("merchant_key") + "|" + finalData.getString("order_id") + "|" + finalData.getString("order_value") + "|" + finalData.getString("full_name") + "|" + finalData.getString("email") + "|" + finalData.getString("merchant_token")));
-            }
-            final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-            OkHttpClient client;
-            if (BuildConfig.DEBUG) {
-                client = new OkHttpClient.Builder().addInterceptor(new CurlLoggerInterceptor("cURL")).build();
-            } else {
-                client = new OkHttpClient();
-            }
-            RequestBody body = RequestBody.create(String.valueOf(finalData), JSON); // new
-            Request request = new Request.Builder().url(baseUrl).post(body).build();
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    runOnUiThread(() -> {
-                        binding.progressBar.setVisibility(View.GONE);
-                        showErrorDialog(e.getMessage());
-                    });
-                }
-
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    try {
-                        JSONObject jsonObject1 = new JSONObject(response.body().string());
-                        runOnUiThread(() -> {
-                            if (jsonObject1.has("redirect_url")) {
-                                try {
-                                    setWebView(jsonObject1.getString("redirect_url"));
-                                } catch (JSONException e) {
-                                    binding.progressBar.setVisibility(View.GONE);
-                                }
-                            } else {
-                                binding.progressBar.setVisibility(View.GONE);
-                                try {
-                                    showErrorDialog(jsonObject1.getString("message"));
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        });
-                    } catch (Exception e) {
-                        runOnUiThread(() -> {
-                            Log.e("NewCheckout", "callOkHttpAPi: "+e );
-                            binding.progressBar.setVisibility(View.GONE);
-                            showErrorDialog("Incomplete response received from application");
-                        });
-                    }
-                }
-            });
-        } catch (Exception e) {
-            binding.progressBar.setVisibility(View.GONE);
-            showErrorDialog("Incomplete response received from application");
-        }
-    }
-
 
     public class webClient extends WebViewClient {
         @Override
@@ -272,13 +200,11 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
                     binding.progressBar.setVisibility(View.VISIBLE);
                     (new Handler()).postDelayed(() -> {
                         if (url.contains(sucUrl)) {
-                            logMessageToServer("success redirect");
                             Intent intent = new Intent();
                             intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.SUCCESS);
                             setResult(RESULT_OK, intent);
                             finish();
                         } else if (url.contains(failUrl)) {
-                            logMessageToServer("failure redirect");
                             Intent intent = new Intent();
                             intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
                             setResult(RESULT_OK, intent);
@@ -470,17 +396,15 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
             super.onProgressChanged(view, newProgress);
             String url = view.getUrl();
             try {
-                if (url != null && (url.contains(sucUrl) || url.contains(failUrl))) {
+                if (!TextUtils.isEmpty(url) && (url.contains(sucUrl) || url.contains(failUrl))) {
                     binding.progressBar.setVisibility(View.VISIBLE);
                     (new Handler()).postDelayed(() -> {
                         if (url.contains(sucUrl)) {
-                            logMessageToServer("success redirect");
                             Intent intent = new Intent();
                             intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.SUCCESS);
                             setResult(RESULT_OK, intent);
                             finish();
                         } else if (url.contains(failUrl)) {
-                            logMessageToServer("failure redirect");
                             Intent intent = new Intent();
                             intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
                             setResult(RESULT_OK, intent);
@@ -548,9 +472,11 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
                 newWebView.destroy();
                 newWebView = null;
             } else {
+                status = SnapmintConfiguration.FAILED;
                 Intent intent = new Intent();
                 intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
                 setResult(RESULT_OK, intent);
+                sendBroadcast(intent);
                 finish();
             }
         }
@@ -558,7 +484,6 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
 
     @Override
     public void handlePaymentResponse(@Nullable String code, @Nullable String message) {
-        logMessageToServer("handlePaymentResponse: " + message);
         Intent returnIntent = new Intent();
         returnIntent.putExtra("status_code", code);
         returnIntent.putExtra("status_msg", message);
@@ -584,62 +509,19 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
 
     @Override
     public void orderSuccess(String data) {
-        logMessageToServer("orderSuccess: " + data);
         Intent intent = new Intent();
         intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.SUCCESS);
         setResult(RESULT_OK, intent);
+        sendBroadcast(intent);
         finish();
     }
 
     @Override
     public void orderFailed() {
-        logMessageToServer("closeWebView");
         Intent intent = new Intent();
         intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
         setResult(RESULT_OK, intent);
+        sendBroadcast(intent);
         finish();
-    }
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        WebView.HitTestResult webviewHittestResult;
-        webviewHittestResult = binding.webView.getHitTestResult();
-        if (webviewHittestResult.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE ||
-                webviewHittestResult.getType() == WebView.HitTestResult.ANCHOR_TYPE) {
-            menu.setHeaderTitle("Open below url in a separate browser to mock payment");
-            menu.add(0, 2, 0, "Copy URL Address").setOnMenuItemClickListener(menuItem -> {
-                String urlLink = webviewHittestResult.getExtra();
-                ClipboardManager manager = null;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    manager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("label", urlLink);
-                    manager.setPrimaryClip(clip);
-                    Toast.makeText(this, "Copied to Clipboard", Toast.LENGTH_SHORT).show();
-                }
-                return false;
-            });
-        }
-    }
-
-    private void logMessageToServer(String message) {
-        try {
-            Map<String, String> payload = new HashMap<>();
-            payload.put("level", "info");
-            payload.put("message", "Android: " + message);
-            apiService.logMessage(payload).enqueue(new retrofit2.Callback<Object>() {
-                @Override
-                public void onResponse(retrofit2.Call<Object> call, retrofit2.Response<Object> response) {
-
-                }
-
-                @Override
-                public void onFailure(retrofit2.Call<Object> call, Throwable t) {
-
-                }
-            });
-        } catch (Exception e) {
-            Log.e(this.getLocalClassName(), "error sending log", e);
-        }
     }
 }
