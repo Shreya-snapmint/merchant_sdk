@@ -1,15 +1,16 @@
 plugins {
     id "com.android.library"
+    id 'maven-publish'
 }
 
 android {
     namespace 'com.snapmint.merchantsdk'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
 //        applicationId "com.viral.my_sdk"
         minSdk 21
-        targetSdk 34
+        targetSdk 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -54,4 +55,21 @@ dependencies {
     implementation 'com.github.2coffees1team:GlideToVectorYou:v2.0.0'
     implementation 'io.github.ParkSangGwon:tedpermission-normal:3.3.0'
 
+}
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                // The correct component name for Android Library is 'release'
+                def releaseComponent = components.findByName("release")
+                if (releaseComponent != null) {
+                    from releaseComponent
+                }
+
+                groupId = 'com.snapmint.merchantsdk'
+                artifactId = 'merchantsdk'
+                version = '1.0.28'
+            }
+        }
+    }
 }
