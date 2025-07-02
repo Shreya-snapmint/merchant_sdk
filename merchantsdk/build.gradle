@@ -61,7 +61,7 @@ afterEvaluate {
 
                 groupId = 'com.github.snapmint'
                 artifactId = 'merchantsdk'
-                version = '1.0.29'
+                version = '1.0.29A'
             }
         }
     }
