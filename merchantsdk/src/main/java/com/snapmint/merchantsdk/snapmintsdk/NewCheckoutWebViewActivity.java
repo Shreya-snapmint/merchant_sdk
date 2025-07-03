@@ -32,11 +32,17 @@ import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.normal.TedPermission;
@@ -108,13 +114,30 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         binding = ActivityNewCheckoutWebviewBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         mContext = this;
         setContentView(view);
+        applySystemBarInsets(binding.getRoot());
         getBundleData();
         initialise();
     }
+
+    protected void applySystemBarInsets(@NonNull View rootView) {
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+            int systemBars = WindowInsetsCompat.Type.systemBars();
+            Insets systemInsets = insets.getInsets(systemBars);
+            v.setPadding(
+                    systemInsets.left,
+                    systemInsets.top,
+                    systemInsets.right,
+                    systemInsets.bottom
+            );
+            return insets; // Return the insets so children can also receive them
+        });
+    }
+
 
     private void getBundleData() {
         Intent intent = getIntent();
@@ -126,6 +149,33 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
 
     private void initialise() {
         setWebView(redirectUrl);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackClick();
+            }
+        });
+    }
+
+    private void handleBackClick() {
+        if (binding.webView.canGoBack()) {
+            binding.webView.goBack();
+        } else if (newWebView != null && newWebView.canGoBack()) {
+            newWebView.goBack();
+        } else {
+            if (newWebView != null) {
+                binding.webView.removeView(newWebView);
+                newWebView.destroy();
+                newWebView = null;
+            } else {
+                status = SnapmintConfiguration.FAILED;
+                Intent intent = new Intent();
+                intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
+                setResult(RESULT_OK, intent);
+                sendBroadcast(intent);
+                finish();
+            }
+        }
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "NewApi"})
@@ -228,13 +278,13 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
         @SuppressLint("WebViewClientOnReceivedSslError")
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            Log.d("NewCheckout", "onReceivedSslError: "+error);
+            Log.d("NewCheckout", "onReceivedSslError: " + error);
             final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
             builder.setMessage(R.string.notification_error_ssl_cert_invalid);
             builder.setPositiveButton("continue", (dialog, which) -> handler.proceed());
             builder.setNegativeButton("cancel", (dialog, which) -> handler.cancel());
             final AlertDialog dialog = builder.create();
-            if(dialog.isShowing()) return;
+            if (dialog.isShowing()) return;
             dialog.show();
         }
 
@@ -321,8 +371,8 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
                             // Deny other permissions if they are not camera-related
                             request.deny();
                         }
-                    }catch (Exception e){
-                        Log.e("","onPermissionRequest :"+e.getMessage());
+                    } catch (Exception e) {
+                        Log.e("", "onPermissionRequest :" + e.getMessage());
                     }
                 }
 
@@ -385,8 +435,8 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
                 } else {
                     request.deny();
                 }
-            }catch (Exception e){
-                Log.e("NewCheckout","onPermissionRequest :"+e.getMessage());
+            } catch (Exception e) {
+                Log.e("NewCheckout", "onPermissionRequest :" + e.getMessage());
             }
         }
 
@@ -457,28 +507,6 @@ public class NewCheckoutWebViewActivity extends AppCompatActivity implements Che
             stringBuilder.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
         }
         return stringBuilder.toString();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (binding.webView.canGoBack()) {
-            binding.webView.goBack();
-        } else if (newWebView != null && newWebView.canGoBack()) {
-            newWebView.goBack();
-        } else {
-            if (newWebView != null) {
-                binding.webView.removeView(newWebView);
-                newWebView.destroy();
-                newWebView = null;
-            } else {
-                status = SnapmintConfiguration.FAILED;
-                Intent intent = new Intent();
-                intent.putExtra(SnapmintConfiguration.STATUS, SnapmintConfiguration.FAILED);
-                setResult(RESULT_OK, intent);
-                sendBroadcast(intent);
-                finish();
-            }
-        }
     }
 
     @Override

@@ -20,13 +20,20 @@ android {
         }
     }
 
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+
     buildFeatures {
         viewBinding true
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
@@ -53,15 +60,24 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            create("release", MavenPublication) {
-                from components.findByName("release")
 
-                groupId = 'com.github.snapmint'
-                artifactId = 'merchantsdk'
-                version = '1.0.29A'
+tasks.register("listComponents") {
+    doLast {
+        println "Available components:"
+        components.each { component ->
+            println " - ${component.name}"
+        }
+    }
+}
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.snapmint'
+            artifactId = 'merchant_sdk'
+            version = '1.0.29b'
+
+            afterEvaluate {
+                from components.release
             }
         }
     }
