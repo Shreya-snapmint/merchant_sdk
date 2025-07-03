@@ -60,21 +60,12 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
 
-
-tasks.register("listComponents") {
-    doLast {
-        println "Available components:"
-        components.each { component ->
-            println " - ${component.name}"
-        }
-    }
-}
 publishing {
     publications {
         release(MavenPublication) {
             groupId = 'com.github.snapmint'
             artifactId = 'merchant_sdk'
-            version = '1.0.29b'
+            version = '1.0.29c'
 
             afterEvaluate {
                 from components.release
